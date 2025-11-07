@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = DATABASE_URL="file:./dev.db"
+}
+
+model User {
+  id               String   @id
+  alias            String?
+  leaderboardOptIn Boolean  @default(false)
+  bets             Bet[]
+  createdAt        DateTime @default(now())
+}
+
+model Bet {
+  id         Int      @id @default(autoincrement())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  market     String
+  pick       String
+  odds       Float
+  stake      Float
+  eventTime  DateTime
+  book       String
+  notes      String?
+  outcome    Float?   // realized P/L once settled
+  createdAt  DateTime @default(now())
+  actions    BetAction[]
+}
+
+model BetAction {
+  id         Int      @id @default(autoincrement())
+  betId      Int
+  bet        Bet      @relation(fields: [betId], references: [id])
+  kind       String   // 'hedge' | 'cashout' | 'settle:win' | 'settle:loss' | 'settle:push' | 'settle:void'
+  amount     Float?
+  realizedPL Float?
+  createdAt  DateTime @default(now())
+}
